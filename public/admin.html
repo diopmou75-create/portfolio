@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADMIN // SYS.DEV</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#00f5ff;--magenta:#ff006e;--yellow:#ffd60a;--green:#00ff88;--dark:#020408;--dark2:#0a0f1a;--glow-c:0 0 20px #00f5ff66;--glow-m:0 0 20px #ff006e66;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--dark);color:#c8d8e8;font-family:'Rajdhani',sans-serif;font-size:16px;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0;}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;background:var(--dark);}
+.login-box{border:1px solid rgba(0,245,255,0.2);background:var(--dark2);padding:48px 40px;width:400px;position:relative;}
+.login-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--magenta),var(--cyan));}
+.login-title{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:var(--cyan);letter-spacing:3px;margin-bottom:6px;text-shadow:var(--glow-c);}
+.login-sub{font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:rgba(200,216,232,0.3);letter-spacing:2px;margin-bottom:32px;}
+.login-error{font-family:'Share Tech Mono',monospace;font-size:0.72rem;color:var(--magenta);letter-spacing:2px;margin-bottom:14px;display:none;}
+.field-lbl{font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:rgba(0,245,255,0.6);letter-spacing:2px;margin-bottom:6px;display:block;}
+.field-lbl::before{content:'> ';color:var(--magenta);}
+
+/* INPUTS */
+input,textarea,select{width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(0,245,255,0.15);color:#e8f4ff;font-family:'Share Tech Mono',monospace;font-size:0.85rem;padding:10px 14px;outline:none;transition:border-color .3s;margin-bottom:20px;}
+input:focus,textarea:focus,select:focus{border-color:var(--cyan);}
+textarea{resize:vertical;min-height:90px;line-height:1.6;}
+select option{background:var(--dark2);}
+
+/* BUTTONS */
+.btn{font-family:'Share Tech Mono',monospace;font-size:0.78rem;letter-spacing:2px;text-transform:uppercase;padding:12px 28px;border:none;cursor:pointer;transition:all .3s;}
+.btn-cyan{background:var(--cyan);color:var(--dark);clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+.btn-cyan:hover{background:var(--magenta);}
+.btn-ghost{background:transparent;border:1px solid rgba(0,245,255,0.2);color:rgba(0,245,255,0.6);}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);}
+.btn-red{background:rgba(255,0,110,0.12);border:1px solid rgba(255,0,110,0.3);color:var(--magenta);}
+.btn-red:hover{background:rgba(255,0,110,0.22);}
+.btn-green{background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.25);color:var(--green);}
+.btn-green:hover{background:rgba(0,255,136,0.2);}
+.btn-sm{padding:7px 14px;font-size:0.68rem;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* APP */
+#admin-app{display:none;min-height:100vh;position:relative;z-index:1;}
+.anav{position:sticky;top:0;background:rgba(2,4,8,0.96);border-bottom:1px solid rgba(0,245,255,0.1);padding:16px 40px;display:flex;justify-content:space-between;align-items:center;z-index:50;backdrop-filter:blur(4px);}
+.alogo{font-family:'Orbitron',monospace;font-weight:900;font-size:.95rem;color:var(--cyan);letter-spacing:3px;text-shadow:var(--glow-c);}
+.alogo span{color:var(--magenta);}
+.anav-r{display:flex;align-items:center;gap:16px;}
+.astatus{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--green);letter-spacing:2px;display:flex;align-items:center;gap:8px;}
+.dot{width:7px;height:7px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green);animation:pd 2s infinite;}
+@keyframes pd{0%,100%{opacity:1;}50%{opacity:.3;}}
+.amain{padding:40px;max-width:1100px;margin:0 auto;}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid rgba(0,245,255,0.1);margin-bottom:36px;}
+.tab-btn{font-family:'Share Tech Mono',monospace;font-size:.72rem;letter-spacing:2px;text-transform:uppercase;padding:11px 22px;background:transparent;border:none;color:rgba(200,216,232,.4);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;margin-bottom:-1px;}
+.tab-btn:hover{color:rgba(200,216,232,.8);}
+.tab-btn.active{color:var(--cyan);border-bottom-color:var(--cyan);}
+.tab-panel{display:none;}.tab-panel.active{display:block;}
+.shdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;}
+.shdr h2{font-family:'Orbitron',monospace;font-size:.95rem;font-weight:700;color:#e8f4ff;letter-spacing:2px;}
+
+/* LIST */
+.plist{display:flex;flex-direction:column;gap:12px;}
+.pitem{border:1px solid rgba(0,245,255,0.1);background:var(--dark2);padding:18px 22px;display:flex;align-items:center;gap:18px;transition:border-color .3s;}
+.pitem:hover{border-color:rgba(0,245,255,.25);}
+.pthumb{width:78px;height:54px;object-fit:cover;flex-shrink:0;border:1px solid rgba(0,245,255,.1);}
+.pthumb-empty{width:78px;height:54px;flex-shrink:0;background:rgba(0,0,0,.4);border:1px solid rgba(0,245,255,.08);display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+.pinfo{flex:1;min-width:0;}
+.pname{font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;color:#e8f4ff;letter-spacing:1px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ptag{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--cyan);letter-spacing:2px;}
+.pactions{display:flex;gap:8px;flex-shrink:0;}
+.empty-state{text-align:center;padding:56px 20px;font-family:'Share Tech Mono',monospace;font-size:.72rem;color:rgba(200,216,232,.22);letter-spacing:2px;border:1px dashed rgba(0,245,255,.07);}
+
+/* FORM */
+.form-group{display:flex;flex-direction:column;margin-bottom:22px;}
+.form-group label{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:rgba(0,245,255,.6);letter-spacing:2px;margin-bottom:6px;}
+.form-group label::before{content:'> ';color:var(--magenta);}
+.form-group input,.form-group textarea,.form-group select{margin-bottom:0;}
+
+/* TAG CHIPS */
+.chips-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.chip{font-family:'Share Tech Mono',monospace;font-size:.63rem;letter-spacing:1px;padding:4px 10px;background:rgba(255,0,110,.08);border:1px solid rgba(255,0,110,.25);color:var(--magenta);display:flex;align-items:center;gap:6px;}
+.chip button{background:none;border:none;color:var(--magenta);cursor:pointer;font-size:.75rem;line-height:1;padding:0;}
+.tag-row{display:flex;gap:8px;margin-top:8px;}
+.tag-row input{margin-bottom:0;flex:1;}
+
+/* MEDIA ZONE */
+.mzone{border:1px dashed rgba(0,245,255,.2);background:rgba(0,245,255,.02);padding:22px;text-align:center;cursor:pointer;transition:all .3s;position:relative;min-height:80px;display:flex;align-items:center;justify-content:center;}
+.mzone:hover,.mzone.drag-over{border-color:var(--cyan);background:rgba(0,245,255,.06);}
+.mzone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;margin:0;padding:0;border:none;background:none;}
+.mzone-lbl{font-family:'Share Tech Mono',monospace;font-size:.72rem;color:rgba(0,245,255,.5);letter-spacing:2px;pointer-events:none;line-height:1.9;}
+.mzone-lbl span{color:var(--cyan);}
+.mprev{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;}
+.mthumb{position:relative;width:90px;height:64px;}
+.mthumb img,.mthumb video{width:100%;height:100%;object-fit:cover;border:1px solid rgba(0,245,255,.15);}
+.mthumb-del{position:absolute;top:2px;right:2px;width:18px;height:18px;background:rgba(255,0,110,.85);color:#fff;border:none;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.mthumb-del-existing{background:rgba(255,0,110,.6);}
+
+/* CONFIRM */
+.cov{position:fixed;inset:0;background:rgba(2,4,8,.85);z-index:300;display:none;align-items:center;justify-content:center;}
+.cbox{background:var(--dark2);border:1px solid rgba(255,0,110,.3);padding:32px;max-width:360px;text-align:center;}
+.cbox p{font-size:1rem;color:rgba(200,216,232,.8);margin-bottom:22px;line-height:1.7;}
+.cbtns{display:flex;gap:12px;justify-content:center;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;font-family:'Share Tech Mono',monospace;font-size:.72rem;letter-spacing:2px;padding:13px 18px;border-left:3px solid;z-index:9999;transform:translateX(130%);transition:transform .3s ease;max-width:300px;}
+.toast.show{transform:translateX(0);}
+.toast.ok{background:rgba(0,255,136,.08);border-color:var(--green);color:var(--green);}
+.toast.err{background:rgba(255,0,110,.08);border-color:var(--magenta);color:var(--magenta);}
+.toast.inf{background:rgba(0,245,255,.06);border-color:var(--cyan);color:var(--cyan);}
+
+/* SPINNER */
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,245,255,0.2);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(max-width:700px){.amain{padding:20px;}.anav{padding:14px 20px;}.login-box{width:92vw;padding:32px 22px;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-title">// ADMIN ACCESS</div>
+    <div class="login-sub">PORTFOLIO.SYS — ZONE RESTREINTE</div>
+    <label class="field-lbl">MOT DE PASSE</label>
+    <input type="password" id="pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-error" id="lerr">⚠ MOT DE PASSE INCORRECT</div>
+    <button class="btn btn-cyan" id="login-btn" onclick="doLogin()">CONNEXION</button>
+    <div style="margin-top:18px;font-family:'Share Tech Mono',monospace;font-size:.63rem;color:rgba(200,216,232,.2);letter-spacing:2px;">
+      → <a href="/" style="color:rgba(0,245,255,.3);text-decoration:none;">RETOUR AU PORTFOLIO</a>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="admin-app">
+  <nav class="anav">
+    <div class="alogo">ADMIN<span>.</span>SYS</div>
+    <div class="anav-r">
+      <span class="astatus"><span class="dot"></span>CONNECTÉ</span>
+      <button class="btn btn-sm btn-red" onclick="doLogout()">DÉCONNECTER</button>
+      <a href="/" class="btn btn-sm btn-ghost" style="text-decoration:none;">← PORTFOLIO</a>
+    </div>
+  </nav>
+
+  <main class="amain">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="list" onclick="goTab('list')">MES PROJETS</button>
+      <button class="tab-btn" data-tab="form" onclick="goTab('form');resetForm()">+ NOUVEAU</button>
+    </div>
+
+    <!-- LISTE -->
+    <div class="tab-panel active" id="tab-list">
+      <div class="shdr">
+        <h2>PROJETS PUBLIÉS</h2>
+        <button class="btn btn-sm btn-cyan" onclick="goTab('form');resetForm()">+ AJOUTER</button>
+      </div>
+      <div class="plist" id="plist">
+        <div class="empty-state">CHARGEMENT...</div>
+      </div>
+    </div>
+
+    <!-- FORMULAIRE -->
+    <div class="tab-panel" id="tab-form">
+      <div class="shdr">
+        <h2 id="form-title">NOUVEAU PROJET</h2>
+        <button class="btn btn-sm btn-red" onclick="resetForm()">RÉINITIALISER</button>
+      </div>
+
+      <div class="form-group">
+        <label>TITRE DU PROJET *</label>
+        <input type="text" id="f-name" placeholder="Ex : Site de gestion des cotisations">
+      </div>
+
+      <div class="form-group">
+        <label>DESCRIPTION</label>
+        <textarea id="f-desc" placeholder="Décris ton projet — ce qu'il fait, pourquoi tu l'as créé, les défis techniques…" rows="4"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>TAGS / TECHNOLOGIES</label>
+        <div class="chips-wrap" id="chips"></div>
+        <div class="tag-row">
+          <input type="text" id="tag-inp" placeholder="Ex : Python, React…" onkeydown="if(event.key==='Enter'){addTag();event.preventDefault();}">
+          <button class="btn btn-sm btn-green" onclick="addTag()">+ TAG</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>COULEUR D'ACCENT</label>
+        <select id="f-color">
+          <option value="var(--cyan)">Cyan</option>
+          <option value="var(--magenta)">Magenta</option>
+          <option value="var(--yellow)">Jaune</option>
+          <option value="var(--green)">Vert</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>PHOTOS &amp; VIDÉOS</label>
+        <!-- médias existants (mode édition) -->
+        <div class="mprev" id="mprev-existing"></div>
+        <!-- zone upload -->
+        <div class="mzone" id="mzone">
+          <input type="file" id="f-files" multiple accept="image/*,video/*" onchange="onFiles(this.files)">
+          <div class="mzone-lbl">
+            Glisse tes fichiers ici ou <span>clique pour parcourir</span><br>
+            <span style="opacity:.5;font-size:.62rem;">JPG · PNG · GIF · MP4 · WEBM — 50 MB max par fichier</span>
+          </div>
+        </div>
+        <div class="mprev" id="mprev-new"></div>
+      </div>
+
+      <div style="display:flex;gap:14px;margin-top:8px;flex-wrap:wrap;">
+        <button class="btn btn-cyan" id="save-btn" onclick="saveProject()">ENREGISTRER</button>
+        <button class="btn btn-sm btn-ghost" onclick="goTab('list')">ANNULER</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- CONFIRM -->
+<div class="cov" id="cov">
+  <div class="cbox">
+    <p id="cmsg"></p>
+    <div class="cbtns">
+      <button class="btn btn-red" id="cyes">CONFIRMER</button>
+      <button class="btn btn-sm btn-ghost" onclick="hideCon()">ANNULER</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── MOT DE PASSE (session) ─────────────────────────────────
+let adminPwd = sessionStorage.getItem('adminPwd') || '';
+
+async function doLogin() {
+  const btn = document.getElementById('login-btn');
+  const pwd = document.getElementById('pwd').value;
+  btn.innerHTML = '<span class="spinner"></span>CONNEXION...';
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    if (r.ok) {
+      adminPwd = pwd;
+      sessionStorage.setItem('adminPwd', pwd);
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-app').style.display = 'block';
+      loadProjects();
+      toast('Bienvenue !', 'ok');
+    } else {
+      document.getElementById('lerr').style.display = 'block';
+      document.getElementById('pwd').value = '';
+    }
+  } catch {
+    toast('Serveur inaccessible', 'err');
+  }
+  btn.innerHTML = 'CONNEXION';
+  btn.disabled = false;
+}
+
+function doLogout() { sessionStorage.removeItem('adminPwd'); location.reload(); }
+
+// Auto-login
+if (adminPwd) {
+  fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: adminPwd })
+  }).then(r => {
+    if (r.ok) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-app').style.display = 'block';
+      loadProjects();
+    } else { sessionStorage.removeItem('adminPwd'); adminPwd = ''; }
+  }).catch(() => {});
+}
+
+// ── TABS ────────────────────────────────────────────────────
+function goTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  if (name === 'list') loadProjects();
+}
+
+// ── CHARGEMENT PROJETS ───────────────────────────────────────
+let allProjects = [];
+
+async function loadProjects() {
+  const c = document.getElementById('plist');
+  c.innerHTML = '<div class="empty-state"><span class="spinner"></span>Chargement...</div>';
+  try {
+    const r = await fetch('/api/projets');
+    allProjects = await r.json();
+    renderList();
+  } catch {
+    c.innerHTML = '<div class="empty-state">ERREUR DE CONNEXION AU SERVEUR</div>';
+  }
+}
+
+function renderList() {
+  const c = document.getElementById('plist');
+  if (!allProjects.length) {
+    c.innerHTML = '<div class="empty-state">AUCUN PROJET — CLIQUE SUR « + AJOUTER »</div>';
+    return;
+  }
+  c.innerHTML = '';
+  allProjects.forEach(p => {
+    const imgs = (p.medias || []).filter(m => m.type.startsWith('image/'));
+    const div = document.createElement('div');
+    div.className = 'pitem';
+
+    let thumbEl;
+    if (imgs.length) {
+      thumbEl = document.createElement('img');
+      thumbEl.className = 'pthumb';
+      thumbEl.src = '/uploads/' + imgs[0].fichier;
+    } else {
+      thumbEl = document.createElement('div');
+      thumbEl.className = 'pthumb-empty';
+      thumbEl.textContent = '📁';
+    }
+
+    const info = document.createElement('div');
+    info.className = 'pinfo';
+    info.innerHTML = `<div class="pname">${p.nom}</div><div class="ptag" style="color:${p.couleur}">${p.tag || ''}</div>`;
+
+    const acts = document.createElement('div');
+    acts.className = 'pactions';
+
+    const be = document.createElement('button');
+    be.className = 'btn btn-sm btn-green'; be.textContent = 'ÉDITER';
+    be.onclick = () => editProject(p);
+
+    const bd = document.createElement('button');
+    bd.className = 'btn btn-sm btn-red'; bd.textContent = 'SUPPR';
+    bd.onclick = () => confirmDel(p);
+
+    acts.append(be, bd);
+    div.append(thumbEl, info, acts);
+    c.appendChild(div);
+  });
+}
+
+// ── FORM STATE ────────────────────────────────────────────────
+let editId = null, newFiles = [], tags = [], deleteMediaIds = [];
+
+function resetForm() {
+  editId = null; newFiles = []; tags = []; deleteMediaIds = [];
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('tag-inp').value = '';
+  document.getElementById('f-color').value = 'var(--cyan)';
+  document.getElementById('f-files').value = '';
+  document.getElementById('mprev-new').innerHTML = '';
+  document.getElementById('mprev-existing').innerHTML = '';
+  document.getElementById('chips').innerHTML = '';
+  document.getElementById('form-title').textContent = 'NOUVEAU PROJET';
+  document.getElementById('save-btn').textContent = 'ENREGISTRER';
+}
+
+function editProject(p) {
+  resetForm();
+  editId = p.id;
+  document.getElementById('f-name').value = p.nom || '';
+  document.getElementById('f-desc').value = p.desc || '';
+  document.getElementById('f-color').value = p.couleur || 'var(--cyan)';
+  tags = p.tag ? p.tag.split(' · ').filter(Boolean) : [];
+  renderChips();
+  renderExistingMedia(p.medias || []);
+  document.getElementById('form-title').textContent = 'ÉDITER : ' + p.nom;
+  document.getElementById('save-btn').textContent = 'METTRE À JOUR';
+  goTab('form');
+}
+
+// ── MÉDIAS EXISTANTS ──────────────────────────────────────────
+function renderExistingMedia(medias) {
+  const c = document.getElementById('mprev-existing');
+  c.innerHTML = '';
+  if (!medias.length) return;
+  medias.forEach(m => {
+    if (deleteMediaIds.includes(m.id)) return;
+    const w = document.createElement('div');
+    w.className = 'mthumb';
+    let el;
+    if (m.type.startsWith('video/')) {
+      el = document.createElement('video');
+      el.src = '/uploads/' + m.fichier; el.muted = true;
+    } else {
+      el = document.createElement('img');
+      el.src = '/uploads/' + m.fichier;
+    }
+    const del = document.createElement('button');
+    del.className = 'mthumb-del mthumb-del-existing';
+    del.textContent = '✕';
+    del.title = 'Supprimer ce média';
+    del.onclick = () => { deleteMediaIds.push(m.id); renderExistingMedia(medias); };
+    w.append(el, del); c.appendChild(w);
+  });
+}
+
+// ── NOUVEAUX FICHIERS ─────────────────────────────────────────
+function onFiles(files) {
+  Array.from(files).forEach(f => newFiles.push(f));
+  renderNewPrev();
+}
+function renderNewPrev() {
+  const c = document.getElementById('mprev-new'); c.innerHTML = '';
+  newFiles.forEach((f, i) => {
+    const w = document.createElement('div'); w.className = 'mthumb';
+    const url = URL.createObjectURL(f);
+    let el;
+    if (f.type.startsWith('video/')) { el = document.createElement('video'); el.src = url; el.muted = true; }
+    else { el = document.createElement('img'); el.src = url; }
+    const del = document.createElement('button');
+    del.className = 'mthumb-del'; del.textContent = '✕';
+    del.onclick = () => { newFiles.splice(i, 1); renderNewPrev(); };
+    w.append(el, del); c.appendChild(w);
+  });
+}
+const mz = document.getElementById('mzone');
+mz.addEventListener('dragover', e => { e.preventDefault(); mz.classList.add('drag-over'); });
+mz.addEventListener('dragleave', () => mz.classList.remove('drag-over'));
+mz.addEventListener('drop', e => { e.preventDefault(); mz.classList.remove('drag-over'); onFiles(e.dataTransfer.files); });
+
+// ── TAGS ─────────────────────────────────────────────────────
+function addTag() {
+  const v = document.getElementById('tag-inp').value.trim();
+  if (!v) return;
+  tags.push(v); document.getElementById('tag-inp').value = '';
+  renderChips();
+}
+function removeTag(i) { tags.splice(i, 1); renderChips(); }
+function renderChips() {
+  const c = document.getElementById('chips'); c.innerHTML = '';
+  tags.forEach((t, i) => {
+    const ch = document.createElement('div'); ch.className = 'chip';
+    ch.innerHTML = `${t} <button onclick="removeTag(${i})">✕</button>`;
+    c.appendChild(ch);
+  });
+}
+
+// ── SAUVEGARDE ────────────────────────────────────────────────
+async function saveProject() {
+  const nom = document.getElementById('f-name').value.trim();
+  if (!nom) { toast('Le titre est obligatoire', 'err'); return; }
+
+  const btn = document.getElementById('save-btn');
+  btn.innerHTML = '<span class="spinner"></span>ENREGISTREMENT...';
+  btn.disabled = true;
+
+  const fd = new FormData();
+  fd.append('nom', nom);
+  fd.append('desc', document.getElementById('f-desc').value.trim());
+  fd.append('tag', tags.join(' · '));
+  fd.append('couleur', document.getElementById('f-color').value);
+  if (deleteMediaIds.length) fd.append('supprimer_medias', JSON.stringify(deleteMediaIds));
+  newFiles.forEach(f => fd.append('medias', f));
+
+  try {
+    const url = editId ? `/api/projets/${editId}` : '/api/projets';
+    const method = editId ? 'PUT' : 'POST';
+    const r = await fetch(url, {
+      method,
+      headers: { 'x-admin-password': adminPwd },
+      body: fd
+    });
+    if (r.ok) {
+      toast(editId ? 'Projet mis à jour ✓' : 'Projet ajouté au portfolio ✓', 'ok');
+      resetForm(); goTab('list');
+    } else {
+      const e = await r.json();
+      toast(e.error || 'Erreur serveur', 'err');
+    }
+  } catch {
+    toast('Impossible de contacter le serveur', 'err');
+  }
+  btn.innerHTML = editId ? 'METTRE À JOUR' : 'ENREGISTRER';
+  btn.disabled = false;
+}
+
+// ── SUPPRESSION ───────────────────────────────────────────────
+function confirmDel(p) {
+  showCon(`Supprimer "<strong>${p.nom}</strong>" ?<br>Tous les médias seront supprimés.`, async () => {
+    const r = await fetch(`/api/projets/${p.id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-password': adminPwd }
+    });
+    if (r.ok) { toast('Projet supprimé', 'inf'); loadProjects(); }
+    else toast('Erreur de suppression', 'err');
+  });
+}
+
+// ── CONFIRM ───────────────────────────────────────────────────
+function showCon(msg, cb) {
+  document.getElementById('cmsg').innerHTML = msg;
+  document.getElementById('cov').style.display = 'flex';
+  document.getElementById('cyes').onclick = () => { cb(); hideCon(); };
+}
+function hideCon() { document.getElementById('cov').style.display = 'none'; }
+
+// ── TOAST ─────────────────────────────────────────────────────
+let tt;
+function toast(msg, type = 'inf') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+  t.classList.add('show');
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 3200);
+}
+</script>
+</body>
+</html>

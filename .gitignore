@@ -1,0 +1,5 @@
+node_modules/
+projets.db
+uploads/
+*.bat
+.env
